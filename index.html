@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>网站图标设置器</title>
+    <style>
+      body {
+        font-family: 'Arial', sans-serif;
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+      .upload-container {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 30px;
+        margin: 20px 0;
+        cursor: pointer;
+      }
+      .upload-container:hover {
+        border-color: #888;
+      }
+      #preview {
+        max-width: 128px;
+        max-height: 128px;
+        margin-top: 20px;
+        display: none;
+      }
+      .info {
+        margin-top: 20px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>网站图标设置器</h1>
+    <p>上传PNG图片作为网站图标，网站标题将更改为图片名称</p>
+
+    <div class="upload-container" id="dropZone">
+      <p>点击或拖放PNG图片到这里</p>
+      <input type="file" id="fileInput" accept="image/png" style="display: none" />
+    </div>
+
+    <img id="preview" alt="预览" />
+
+    <div class="info">
+      <p id="currentTitle">当前标题: <span id="titleValue">网站图标设置器</span></p>
+      <p id="currentIcon">当前图标: <span>默认</span></p>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const titleValue = document.getElementById('titleValue');
+        const currentIcon = document.getElementById('currentIcon').querySelector('span');
+
+        // 点击上传区域激活文件选择
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // 处理文件选择
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // 拖放功能
+        dropZone.addEventListener('dragover', e => {
+          e.preventDefault();
+          dropZone.style.borderColor = '#333';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.style.borderColor = '#ccc';
+        });
+
+        dropZone.addEventListener('drop', e => {
+          e.preventDefault();
+          dropZone.style.borderColor = '#ccc';
+
+          if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            handleFileSelect({ target: fileInput });
+          }
+        });
+
+        function handleFileSelect(event) {
+          const file = event.target.files[0];
+
+          if (file && file.type === 'image/png') {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+              // 设置网站图标
+              setFavicon(e.target.result);
+
+              // 更新预览
+              preview.src = e.target.result;
+              preview.style.display = 'inline-block';
+
+              // 获取文件名（不含扩展名）并设置标题
+              const fileName = file.name.replace(/\.[^/.]+$/, '');
+              document.title = fileName;
+              titleValue.textContent = fileName;
+
+              // 更新显示信息
+              currentIcon.textContent = file.name;
+            };
+
+            reader.readAsDataURL(file);
+          } else {
+            alert('请选择PNG图片文件');
+          }
+        }
+
+        function setFavicon(dataUrl) {
+          // 移除现有图标
+          const existingFavicon = document.querySelector('link[rel="icon"]');
+          if (existingFavicon) {
+            document.head.removeChild(existingFavicon);
+          }
+
+          // 创建新图标
+          const link = document.createElement('link');
+          link.rel = 'icon';
+          link.type = 'image/png';
+          link.href = dataUrl;
+          document.head.appendChild(link);
+        }
+      });
+    </script>
+  </body>
+</html>
